@@ -29,7 +29,7 @@ if not os.path.exists(camera_locations_path):
 
 #dt = datetime.datetime.now()
 
-start_dt = datetime.datetime(2018, 10, 1, 1, 17)
+start_dt = datetime.datetime(2018, 10, 1)
 end_dt = datetime.datetime(2018, 10, 8)
 
 dt = start_dt
