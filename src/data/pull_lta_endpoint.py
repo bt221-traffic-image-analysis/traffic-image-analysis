@@ -3,6 +3,7 @@ import datetime
 import json
 import os
 import shutil
+import time
 
 endpoint_url = "https://api.data.gov.sg/v1/transport/traffic-images"
 
@@ -28,14 +29,20 @@ if not os.path.exists(camera_locations_path):
 
 #dt = datetime.datetime.now()
 
-start_dt = datetime.datetime(2018, 10, 1)
+start_dt = datetime.datetime(2018, 10, 1, 1, 17)
 end_dt = datetime.datetime(2018, 10, 8)
 
 dt = start_dt
 while dt < end_dt:
+    print(dt.strftime("%b %d, %H:%M:%S"))
     dt_str = dt.strftime('%Y-%m-%dT%H:%M:%S')
-    r = requests.get(endpoint_url + "?date_time=" + dt_str)
-    assert r.status_code == 200
+    while True:
+        r = requests.get(endpoint_url + "?date_time=" + dt_str)
+        if r.status_code == 200:
+            break
+        else:
+            print("Error with endpoint. Trying again in 5 seconds.")
+            time.sleep(5)
     
     j = r.json()['items'][0]
     
@@ -56,10 +63,16 @@ while dt < end_dt:
         if not os.path.exists(file_path):
             # Download and save image
             # Only download it if we never saved it before
-            img = requests.get(cam['image'], stream=True)
-            if img.status_code == 200:
-                with open(file_path, 'wb') as f:
-                    img.raw.decode_content = True
-                    shutil.copyfileobj(img.raw, f)
+            while True:
+                img = requests.get(cam['image'], stream=True)
+                if img.status_code == 200:
+                    break
+                else:
+                    print("Error downloading image. Trying again in 5 seconds.")
+                    time.sleep(5)
+                
+            with open(file_path, 'wb') as f:
+                img.raw.decode_content = True
+                shutil.copyfileobj(img.raw, f)
     
     dt += datetime.timedelta(seconds=20)
